@@ -1,6 +1,6 @@
 #' Create Summary Interactive Collapsible Tree Diagrams
 #'
-#' Interactive Reingold–Tilford tree diagram created using D3.js,
+#' Interactive Reingold-Tilford tree diagram created using D3.js,
 #' where every node can be expanded and collapsed by clicking on it.
 #' This function serves as a convenience wrapper to add color gradients to nodes
 #' either by counting that node's children (default) or specifying another numeric
@@ -72,7 +72,15 @@ collapsibleTreeSummary <- function(df, hierarchy, root = deparse(substitute(df))
   if(length(hierarchy) <= 1) stop("hierarchy vector must be greater than length 1")
   if(!all(hierarchy %in% colnames(df))) stop("hierarchy column names are incorrect")
   if(!(attribute %in% c(colnames(df), "leafCount"))) stop("attribute column name is incorrect")
-  if(sum(complete.cases(df[hierarchy])) != nrow(df)) stop("NAs in data frame")
+  if(attribute != "leafCount") {
+    if(any(is.na(df[attribute]))) stop("attribute must not have NAs")
+  }
+
+  # if df has NAs, coerce them into character columns and replace them with ""
+  if(sum(complete.cases(df[hierarchy])) != nrow(df)) {
+    df[hierarchy] <- lapply(df[hierarchy], as.character)
+    df[is.na(df)] <- ""
+  }
 
   # calculate the right and left margins in pixels
   leftMargin <- nchar(root)
