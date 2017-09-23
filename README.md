@@ -1,5 +1,5 @@
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-collapsibleTree 0.1.5
+collapsibleTree 0.1.6
 =====================
 
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/collapsibleTree)](https://cran.r-project.org/package=collapsibleTree) [![CRAN downloads](http://cranlogs.r-pkg.org/badges/collapsibleTree)](https://cran.r-project.org/package=collapsibleTree)
@@ -61,7 +61,7 @@ collapsibleTree(
 )
 ```
 
-[![Collapsible Tree Colored](https://github.com/AdeelK93/collapsibleTree/raw/master/README-example-2.png)](https://adeelk93.github.io/collapsibleTree/)
+[![Collapsible Tree Colored](https://github.com/AdeelK93/collapsibleTree/raw/master/README-example-2.PNG)](https://adeelk93.github.io/collapsibleTree/)
 
 Gradients can be mapped to a column in the data frame to help visualize relative weightings of nodes. Node weighting can also be mapped to a tooltip.
 
@@ -75,6 +75,64 @@ collapsibleTreeSummary(
 ```
 
 [![Collapsible Tree Gradient](https://github.com/AdeelK93/collapsibleTree/raw/master/README-example-3.PNG)](https://adeelk93.github.io/collapsibleTree/)
+
+Likewise, node size can also be mapped to a column in the data frame to help visualize relative weightings of nodes.
+
+``` r
+collapsibleTreeSummary(
+  warpbreaks,
+  c("wool", "tension", "breaks"),
+  attribute = "breaks",
+  maxPercent = 50,
+  nodeSize = "breaks",
+  collapsed = FALSE
+)
+```
+
+[![Collapsible Tree Gradient](https://github.com/AdeelK93/collapsibleTree/raw/master/README-example-4.PNG)](https://adeelk93.github.io/collapsibleTree/)
+
+Parent-child relationships can be mapped to the tree to give more customizability for each node, such as passing custom html elements to each node.
+
+``` r
+# Create a simple org chart
+org <- data.frame(
+  Manager = c(
+    NA, "Ana", "Ana", "Bill", "Bill", "Bill", "Claudette", "Claudette", "Danny",
+    "Fred", "Fred", "Grace", "Larry", "Larry", "Nicholas", "Nicholas"
+  ),
+  Employee = c(
+    "Ana", "Bill", "Larry", "Claudette", "Danny", "Erika", "Fred", "Grace",
+    "Henri", "Ida", "Joaquin", "Kate", "Mindy", "Nicholas", "Odette", "Peter"
+  ),
+  Title = c(
+    "President", "VP Operations", "VP Finance", "Director", "Director", "Scientist",
+    "Manager", "Manager", "Jr Scientist", "Operator", "Operator", "Associate",
+     "Analyst", "Director", "Accountant", "Accountant"
+  )
+)
+
+# Add in colors and sizes
+org$Color <- org$Title
+levels(org$Color) <- colorspace::rainbow_hcl(11)
+
+# Use unsplash api to add in random photos to tooltip
+org$tooltip <- paste0(
+  org$Employee,
+  "<br>Title: ",
+  org$Title,
+  "<br><img src='https://source.unsplash.com/collection/385548/150x100'>"
+)
+
+collapsibleTreeNetwork(
+  org,
+  attribute = "Title",
+  fill = "Color",
+  nodeSize = "leafCount",
+  tooltipHtml = "tooltip"
+)
+```
+
+[![Collapsible Tree Network](https://github.com/AdeelK93/collapsibleTree/raw/master/README-example-5.PNG)](https://adeelk93.github.io/collapsibleTree/)
 
 Shiny Interaction
 -----------------
@@ -100,12 +158,13 @@ Test Results
 ``` r
 library(collapsibleTree)
 date()
-#> [1] "Sun Jul 23 13:03:37 2017"
+#> [1] "Sat Sep 23 12:40:42 2017"
 
 testthat::test_dir("tests/testthat")
-#> Error handling: ........
+#> Error handling: .........
 #> Margin sizing: ................
 #> Missing values: ....
+#> Network: ......
 #> Root labelling: ..........
 #> 
 #> DONE ======================================================================

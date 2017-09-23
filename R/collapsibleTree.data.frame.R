@@ -1,44 +1,19 @@
-#' Create Interactive Collapsible Tree Diagrams from a \code{data.frame}
-#'
-#' Interactive Reingold-Tilford tree diagram created using D3.js,
-#' where every node can be expanded and collapsed by clicking on it.
-#'
-#' @param df a data frame from which to construct a nested list
-#' @param hierarchy a character vector of column names that define the order
-#' and hierarchy of the tree network. Applicable only for \code{data.frame} input.
-#' @param root label for the root node
-#' @param inputId the input slot that will be used to access the selected node (for Shiny).
-#' Will return a named list of the most recently clicked node,
-#' along with all of its parents.
-#' @param width width in pixels (optional, defaults to automatic sizing)
-#' @param height height in pixels (optional, defaults to automatic sizing)
-#' @param attribute numeric column not listed in hierarchy that will be used
-#' for tooltips, if applicable. Defaults to 'leafCount',
-#' which is the cumulative count of a node's children
-#' @param aggFun aggregation function applied to the attribute column to determine
-#' values of parent nodes. Defaults to `sum`, but `mean` also makes sense.
-#' @param fill either a single color or a vector of colors the same length
-#' as the number of nodes. By default, vector should be ordered by level,
-#' such that the root color is described first, then all the children's colors,
-#' and then all the grandchildren's colors.
-#' @param fillByLevel which order to assign fill values to nodes.
-#' \code{TRUE}: Filling by level; will assign fill values to nodes vertically.
-#' \code{FALSE}: Filling by order; will assign fill values to nodes horizontally.
-#' @param linkLength length of the horizontal links that connect nodes in pixels.
-#' (optional, defaults to automatic sizing)
-#' @param fontSize font size of the label text in pixels
-#' @param tooltip tooltip shows the node's label and attribute value.
-#' @param ... unused; included to match with the generic function
-#' @family collapsibleTree functions
+#' @rdname collapsibleTree
+#' @method collapsibleTree data.frame
 #' @export
 collapsibleTree.data.frame <- function(df, hierarchy, root = deparse(substitute(df)),
-                                       inputId = NULL, width = NULL, height = NULL,
-                                       attribute = "leafCount", aggFun = sum,
-                                       fill = "lightsteelblue", fillByLevel = TRUE,
-                                       linkLength = NULL, fontSize = 10, tooltip = FALSE, ...) {
+                                       inputId = NULL, attribute = "leafCount",
+                                       aggFun = sum, fill = "lightsteelblue",
+                                       fillByLevel = TRUE, linkLength = NULL, fontSize = 10,
+                                       tooltip = FALSE, nodeSize = NULL, collapsed = TRUE,
+                                       zoomable = TRUE, width = NULL, height = NULL,
+                                       ...) {
 
   # preserve this name before evaluating df
   root <- root
+
+  # acceptable inherent node attributes
+  nodeAttr <- c("leafCount", "count")
 
   # reject bad inputs
   if(!is.data.frame(df)) stop("df must be a data frame")
@@ -46,8 +21,9 @@ collapsibleTree.data.frame <- function(df, hierarchy, root = deparse(substitute(
   if(!is.character(fill)) stop("fill must be a character vector")
   if(length(hierarchy) <= 1) stop("hierarchy vector must be greater than length 1")
   if(!all(hierarchy %in% colnames(df))) stop("hierarchy column names are incorrect")
-  if(!(attribute %in% c(colnames(df), "leafCount"))) stop("attribute column name is incorrect")
-  if(attribute != "leafCount") {
+  if(!(attribute %in% c(colnames(df), nodeAttr))) stop("attribute column name is incorrect")
+  if(!is.null(nodeSize)) if(!(nodeSize %in% c(colnames(df), nodeAttr))) stop("nodeSize column name is incorrect")
+  if(!(attribute %in% nodeAttr)) {
     if(any(is.na(df[attribute]))) stop("attribute must not have NAs")
   }
 
@@ -70,6 +46,8 @@ collapsibleTree.data.frame <- function(df, hierarchy, root = deparse(substitute(
     linkLength = linkLength,
     fontSize = fontSize,
     tooltip = tooltip,
+    collapsed = collapsed,
+    zoomable = zoomable,
     margin = list(
       top = 20,
       bottom = 20,
@@ -77,6 +55,9 @@ collapsibleTree.data.frame <- function(df, hierarchy, root = deparse(substitute(
       right = (rightMargin * fontSize/2) + 25
     )
   )
+
+  # these are the fields that will ultimately end up in the json
+  jsonFields <- NULL
 
   # the hierarchy that will be used to create the tree
   df$pathString <- paste(
@@ -94,6 +75,7 @@ collapsibleTree.data.frame <- function(df, hierarchy, root = deparse(substitute(
       stop(paste("Expected fill vector of length", node$totalCount, "but got", length(fill)))
     }
     node$Set(fill = fill, traversal = ifelse(fillByLevel, "level", "pre-order"))
+    jsonFields <- c(jsonFields, "fill")
   } else {
     options$fill <- fill
   }
@@ -109,10 +91,27 @@ collapsibleTree.data.frame <- function(df, hierarchy, root = deparse(substitute(
         x$WeightOfNode, big.mark = ",", digits = 3, scientific = FALSE
       )
     })
-    jsonFields <- c("fill", "WeightOfNode")
-  } else jsonFields <- "fill"
+    jsonFields <- c(jsonFields, "WeightOfNode")
+  }
 
-  # keep only the fill attribute in the final JSON
+  # only necessary to perform these calculations if there is a nodeSize specified
+  if(!is.null(nodeSize)) {
+    # Scale factor to keep the median leaf size around 10
+    scaleFactor <- 10/data.tree::Aggregate(node, nodeSize, stats::median)
+    # traverse down the tree and compute the weights of each node for the tooltip
+    t <- data.tree::Traverse(node, "pre-order")
+    data.tree::Do(t, function(x) {
+      x$SizeOfNode <- data.tree::Aggregate(x, nodeSize, aggFun)
+      # scale node growth to area rather than radius and round
+      x$SizeOfNode <- round(sqrt(x$SizeOfNode*scaleFactor)*pi, 2)
+    })
+    # update left margin based on new root size
+    options$margin$left <- options$margin$left + node$SizeOfNode - 10
+    jsonFields <- c(jsonFields, "SizeOfNode")
+  }
+
+  # keep only the JSON fields that are necessary
+  if(is.null(jsonFields)) jsonFields <- NA
   data <- data.tree::ToListExplicit(node, unname = TRUE, keepOnly = jsonFields)
 
   # pass the data and options using 'x'

@@ -1,7 +1,7 @@
 Package: collapsibleTree
 Type: Package
 Title: Interactive Collapsible Tree Diagrams using 'D3.js'
-Version: 0.1.5
+Version: 0.1.6
 Authors@R: c(
     person("Adeel", "Khan", email = "AdeelK@gwu.edu", role = c("aut", "cre")),
     person("Dhrumin", "Shah", role = "ctb"),
@@ -24,9 +24,9 @@ LazyData: true
 RoxygenNote: 6.0.1
 Suggests: colorspace, RColorBrewer, dplyr, testthat
 NeedsCompilation: no
-Packaged: 2017-07-23 18:27:51 UTC; Adeel
+Packaged: 2017-09-23 16:55:29 UTC; Adeel
 Author: Adeel Khan [aut, cre],
   Dhrumin Shah [ctb],
   Mike Bostock [ctb, cph] (D3.js library, http://d3js.org)
 Repository: CRAN
-Date/Publication: 2017-07-23 19:51:16 UTC
+Date/Publication: 2017-09-23 17:00:31 UTC

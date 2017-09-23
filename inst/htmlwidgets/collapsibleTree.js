@@ -11,12 +11,20 @@ HTMLWidgets.widget({
     options = {},
     treemap;
 
+    // Optionally enable zooming, and limit to 1/5x or 5x of the original viewport
+    var zoom = d3.zoom()
+    .scaleExtent([1/5, 5])
+    .on('zoom', function () {
+      if (options.zoomable) svg.attr('transform', d3.event.transform)
+    })
+
     // create our tree object and bind it to the element
     // appends a 'group' element to 'svg'
     // moves the 'group' element to the top left margin
     var svg = d3.select(el).append('svg')
     .attr('width', width)
     .attr('height', height)
+    .call(zoom)
     .append('g');
 
     // Define the div for the tooltip
@@ -72,7 +80,9 @@ HTMLWidgets.widget({
       nodeEnter.append('text')
       .attr('dy', '.35em')
       .attr('x', function(d) {
-        return d.children || d._children ? -13 : 13;
+        // Scale padding for label to the size of node
+        var padding = (d.data.SizeOfNode || 10) + 3
+        return d.children || d._children ? -1 * padding : padding;
       })
       .attr('text-anchor', function(d) {
         return d.children || d._children ? 'end' : 'start';
@@ -92,7 +102,9 @@ HTMLWidgets.widget({
 
       // Update the node attributes and style
       nodeUpdate.select('circle.node')
-      .attr('r', 10)
+      .attr('r', function(d) {
+        return d.data.SizeOfNode || 10; // default radius is 10
+      })
       .style('fill', function(d) {
         return d.data.fill || (d._children ? options.fill : '#fff');
       })
@@ -127,8 +139,10 @@ HTMLWidgets.widget({
       // Enter any new links at the parent's previous position.
       var linkEnter = link.enter().insert('path', 'g')
       .attr('class', 'link')
+      // Potentially, this may one day be mappable
+      // .style('stroke-width', function(d) { return d.data.linkWidth || 1 })
       .attr('d', function(d){
-        var o = {x: source.x0, y: source.y0}
+        var o = { x: source.x0, y: source.y0 }
         return diagonal(o, o)
       });
 
@@ -199,8 +213,9 @@ HTMLWidgets.widget({
         .duration(200)
         .style('opacity', .9);
 
+        // Show either a constructed tooltip, or override with one from the data
         tooltip.html(
-          d.data.name + '<br>' +
+          d.data.tooltip || d.data.name + '<br>' +
           options.attribute + ': ' + d.data.WeightOfNode
         )
         // Make the tooltip font size just a little bit bigger
@@ -245,8 +260,8 @@ HTMLWidgets.widget({
           }
         }
 
-        // Collapse after the second level
-        root.children.forEach(collapse);
+        // Optionally collapse after the second level
+        if (options.collapsed) root.children.forEach(collapse);
         update(root);
 
         // Collapse the node and all it's children
