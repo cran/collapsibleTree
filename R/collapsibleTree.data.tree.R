@@ -14,8 +14,9 @@ collapsibleTree.Node <- function(df, hierarchy_attribute = "level",
   # reject bad inputs
   if(!is(df) %in% "Node") stop("df must be a data tree object")
   if(!is.character(fill)) stop("fill must be a either a color or column name")
-  if(!is.null(tooltipHtml)) if(!(tooltipHtml %in% df$fields)) stop("tooltipHtml column name is incorrect")
-  if(!is.null(nodeSize)) if(!(nodeSize %in% c(df$fields, nodeAttr))) stop("nodeSize column name is incorrect")
+  if(is.character(collapsed) & !(collapsed %in% c(df$attributes, nodeAttr))) stop("collapsed column name is incorrect")
+  if(!is.null(tooltipHtml)) if(!(tooltipHtml %in% df$attributes)) stop("tooltipHtml column name is incorrect")
+  if(!is.null(nodeSize)) if(!(nodeSize %in% c(df$attributes, nodeAttr))) stop("nodeSize column name is incorrect")
 
   # calculate the right and left margins in pixels
   leftMargin <- nchar(root)
@@ -47,7 +48,7 @@ collapsibleTree.Node <- function(df, hierarchy_attribute = "level",
   # these are the fields that will ultimately end up in the json
   jsonFields <- NULL
 
-  if(fill %in% df$fields) {
+  if(fill %in% df$attributes) {
     # fill in node colors based on column name
     df$Do(function(x) x$fill <- x[[fill]])
     jsonFields <- c(jsonFields, "fill")
@@ -82,6 +83,9 @@ collapsibleTree.Node <- function(df, hierarchy_attribute = "level",
     df$Do(function(x) x$tooltip <- x[[tooltipHtml]])
     jsonFields <- c(jsonFields, "tooltip")
   }
+
+  # if collapsed is specified, pass it on in the data
+  if(is.character(collapsed)) jsonFields <- c(jsonFields, collapsed)
 
   # only necessary to perform these calculations if there is a nodeSize specified
   if(!is.null(nodeSize)) {

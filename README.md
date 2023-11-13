@@ -13,7 +13,7 @@ diagrams using D3.js, adapted from Mike Bostock’s
 into a hierarchical visualization without worrying about nested lists or
 JSON objects\!
 
-If you’re using [Shiny](https://shiny.rstudio.com/), you can bind the
+If you’re using [Shiny](https://shiny.posit.co/), you can bind the
 most recently clicked node to a Shiny input, allowing for easier
 interaction with complex nested objects. The input will return a named
 list containing the most recently selected node, as well as all of its
@@ -57,7 +57,7 @@ collapsibleTree(warpbreaks, c("wool", "tension", "breaks"))
 ```
 
 [![Collapsible
-Tree](https://raw.githubusercontent.com/AdeelK93/collapsibleTree/master/README-example-1.PNG)](https://adeelk93.github.io/collapsibleTree/)
+Tree](README-example-1.PNG)](https://adeelk93.github.io/collapsibleTree/)
 
 The color of each node can be customized to draw attention to the levels
 of hierarchy. Thanks to Ryan Derickson for the implementation idea\!
@@ -69,7 +69,7 @@ species <- read.csv("https://apps.fs.usda.gov/fia/datamart/CSV/REF_SPECIES_GROUP
 
 collapsibleTree(
   species,
-  hierarchy = c("REGION", "CLASS", "NAME"), 
+  hierarchy = c("REGION", "CLASS", "NAME"),
   fill = c(
     # The root
     "seashell",
@@ -84,7 +84,7 @@ collapsibleTree(
 ```
 
 [![Collapsible Tree
-Colored](https://raw.githubusercontent.com/AdeelK93/collapsibleTree/master/README-example-2.PNG)](https://adeelk93.github.io/collapsibleTree/)
+Colored](README-example-2.PNG)](https://adeelk93.github.io/collapsibleTree/)
 
 Gradients can be mapped to a column in the data frame to help visualize
 relative weightings of nodes. Node weighting can also be mapped to a
@@ -100,7 +100,7 @@ collapsibleTreeSummary(
 ```
 
 [![Collapsible Tree
-Gradient](https://raw.githubusercontent.com/AdeelK93/collapsibleTree/master/README-example-3.PNG)](https://adeelk93.github.io/collapsibleTree/)
+Gradient](README-example-3.PNG)](https://adeelk93.github.io/collapsibleTree/)
 
 Likewise, node size can also be mapped to a column in the data frame to
 help visualize relative weightings of nodes.
@@ -117,7 +117,7 @@ collapsibleTreeSummary(
 ```
 
 [![Collapsible Tree
-Gradient](https://raw.githubusercontent.com/AdeelK93/collapsibleTree/master/README-example-4.PNG)](https://adeelk93.github.io/collapsibleTree/)
+Gradient](README-example-4.PNG)](https://adeelk93.github.io/collapsibleTree/)
 
 Parent-child relationships can be mapped to the tree to give more
 customizability for each node, such as passing custom html elements to
@@ -163,7 +163,7 @@ collapsibleTreeNetwork(
 ```
 
 [![Collapsible Tree
-Network](https://raw.githubusercontent.com/AdeelK93/collapsibleTree/master/README-example-5.PNG)](https://adeelk93.github.io/collapsibleTree/)
+Network](README-example-5.PNG)](https://adeelk93.github.io/collapsibleTree/)
 
 ## Shiny Interaction
 
@@ -192,7 +192,7 @@ feature suggestions\! Would love to hear your comments.
 ``` r
 library(collapsibleTree)
 date()
-#> [1] "Tue Aug 21 22:07:51 2018"
+#> [1] "Mon Nov 12 10:26:36 2018"
 
 testthat::test_dir("tests/testthat", reporter = testthat::SummaryReporter)
 #> Error handling: .........
@@ -200,6 +200,7 @@ testthat::test_dir("tests/testthat", reporter = testthat::SummaryReporter)
 #> Missing values: ....
 #> Network: .........
 #> Root labelling: ..........
-#> 
+#>
 #> ══ DONE ═══════════════════════════════════════════════════════════════════════════════
+#> You are a coding rockstar!
 ```
